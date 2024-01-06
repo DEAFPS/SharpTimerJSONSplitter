@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SharpTimer player_records.json Splitter</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #61dafb;
+        }
+
+        textarea {
+            width: 60%;
+            height: 200px;
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #2b2b2b;
+            color: #fff;
+            border: 1px solid #61dafb;
+            border-radius: 5px;
+            resize: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #61dafb;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #4fa3d1;
+        }
+
+        #downloadLink {
+            display: none;
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #121212;
+                color: #fff;
+            }
+
+            textarea, button {
+                background-color: #1e1e1e;
+                border: 1px solid #61dafb;
+            }
+
+            button:hover {
+                background-color: #4fa3d1;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script>
+        function correctJSON(jsonString) {
+            try {
+                const parsedJSON = JSON.parse(jsonString);
+                const correctedJSON = JSON.stringify(parsedJSON, null, 2);
+                return correctedJSON;
+            } catch (error) {
+                console.error('Error correcting JSON:', error);
+                alert('Invalid JSON data. Please check your input.');
+                return null;
+            }
+        }
+
+        function splitJSON() {
+            const jsonInput = document.getElementById('jsonInput');
+            const jsonData = jsonInput.value.trim();
+
+            if (!jsonData) {
+                alert('Please enter valid JSON data.');
+                return;
+            }
+
+            const correctedJSON = correctJSON(jsonData);
+            if (!correctedJSON) {
+                return;
+            }
+
+            try {
+                const data = JSON.parse(correctedJSON);
+
+                const zip = new JSZip();
+                
+                for (const mapName in data) {
+                    const mapData = data[mapName];
+                    const mapFileName = `${mapName}.json`;
+                    const mapFileContent = JSON.stringify(mapData, null, 2);
+                    zip.file(mapFileName, mapFileContent);
+                }
+
+                zip.generateAsync({ type: 'blob' })
+                    .then(blob => {
+                        saveAs(blob, 'splitted_files.zip');
+                        document.getElementById('downloadLink').style.display = 'block';
+                        document.getElementById('downloadLink').click();
+                    });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Invalid JSON data.');
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>JSON Splitter</h1>
+    <textarea id="jsonInput" placeholder="Paste your JSON data here..." required></textarea>
+    <button onclick="splitJSON()">Split JSON</button>
+    <a id="downloadLink" download="splitted_files.zip" href="#" style="display: none;"></a>
+</body>
+</html>
